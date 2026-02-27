@@ -3,9 +3,7 @@
 ARG PLANO_VERSION=0.4.8
 FROM katanemo/plano:${PLANO_VERSION}
 
-# Install curl for health checks (if not already present)
-RUN apt-get update && apt-get install -y --no-install-recommends curl && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# curl is already in the base image (used for health checks)
 
 # Copy entrypoint script
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
