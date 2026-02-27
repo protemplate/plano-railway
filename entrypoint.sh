@@ -59,9 +59,13 @@ else
         if [ "$DEFAULT_PROVIDER" = "openai" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
             IS_DEFAULT=$'\n    default: true'
         fi
+        ROUTING_PREFS=""
+        if [ -n "$PLANO_ROUTING_MODEL" ]; then
+            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: general conversation\n        description: general chat, greetings, Q&A, everyday questions, casual conversation'
+        fi
         PROVIDERS="${PROVIDERS}
   - model: ${MODEL}
-    access_key: \$OPENAI_API_KEY${IS_DEFAULT}"
+    access_key: \$OPENAI_API_KEY${IS_DEFAULT}${ROUTING_PREFS}"
         PROVIDER_COUNT=$((PROVIDER_COUNT + 1))
         echo "  Provider: OpenAI ($MODEL)"
     fi
@@ -72,9 +76,13 @@ else
         if [ "$DEFAULT_PROVIDER" = "anthropic" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
             IS_DEFAULT=$'\n    default: true'
         fi
+        ROUTING_PREFS=""
+        if [ -n "$PLANO_ROUTING_MODEL" ]; then
+            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: code generation\n        description: generating code, writing scripts, complex reasoning, analysis, debugging'
+        fi
         PROVIDERS="${PROVIDERS}
   - model: ${MODEL}
-    access_key: \$ANTHROPIC_API_KEY${IS_DEFAULT}"
+    access_key: \$ANTHROPIC_API_KEY${IS_DEFAULT}${ROUTING_PREFS}"
         PROVIDER_COUNT=$((PROVIDER_COUNT + 1))
         echo "  Provider: Anthropic ($MODEL)"
     fi
@@ -85,9 +93,13 @@ else
         if [ "$DEFAULT_PROVIDER" = "google" ] || [ "$DEFAULT_PROVIDER" = "gemini" ]; then
             IS_DEFAULT=$'\n    default: true'
         fi
+        ROUTING_PREFS=""
+        if [ -n "$PLANO_ROUTING_MODEL" ]; then
+            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: general conversation\n        description: general chat, greetings, Q&A, everyday questions, summarization'
+        fi
         PROVIDERS="${PROVIDERS}
   - model: ${MODEL}
-    access_key: \$GOOGLE_API_KEY${IS_DEFAULT}"
+    access_key: \$GOOGLE_API_KEY${IS_DEFAULT}${ROUTING_PREFS}"
         PROVIDER_COUNT=$((PROVIDER_COUNT + 1))
         echo "  Provider: Google ($MODEL)"
     fi
@@ -98,9 +110,13 @@ else
         if [ "$DEFAULT_PROVIDER" = "groq" ]; then
             IS_DEFAULT=$'\n    default: true'
         fi
+        ROUTING_PREFS=""
+        if [ -n "$PLANO_ROUTING_MODEL" ]; then
+            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: quick tasks\n        description: fast responses, simple questions, quick lookups, brief answers'
+        fi
         PROVIDERS="${PROVIDERS}
   - model: ${MODEL}
-    access_key: \$GROQ_API_KEY${IS_DEFAULT}"
+    access_key: \$GROQ_API_KEY${IS_DEFAULT}${ROUTING_PREFS}"
         PROVIDER_COUNT=$((PROVIDER_COUNT + 1))
         echo "  Provider: Groq ($MODEL)"
     fi
