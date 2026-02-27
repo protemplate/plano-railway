@@ -1,0 +1,93 @@
+# Plano Configuration Reference
+# ==============================
+# This file is NOT used at runtime. The entrypoint auto-generates config
+# from environment variables. Use this as a reference for custom configs
+# passed via PLANO_CONFIG_YAML or PLANO_CONFIG_BASE64.
+#
+# Full schema: https://github.com/katanemo/plano/blob/main/config/plano_config_schema.yaml
+# Docs: https://docs.planoai.dev
+
+version: v0.1.0
+
+# --- Intelligent Routing (optional) ---
+# Uncomment to enable automatic model selection based on prompt intent.
+# Requires the Arch-Router model (hosted free by Plano).
+#
+# routing:
+#   model: Arch-Router
+#   llm_provider: arch-router
+
+# --- LLM Gateway Listener ---
+# Exposes an OpenAI-compatible API on the configured port.
+# On Railway, this is set to $PORT automatically.
+listeners:
+  egress_traffic:
+    address: 0.0.0.0
+    port: 12000
+    message_format: openai
+    timeout: 30s
+
+# --- Model Providers ---
+# Add your LLM providers here. Format: <provider>/<model_id>
+# The $VAR syntax references environment variables (substituted at startup).
+model_providers:
+  - model: openai/gpt-4o
+    access_key: $OPENAI_API_KEY
+    default: true
+
+  - model: anthropic/claude-sonnet-4-5
+    access_key: $ANTHROPIC_API_KEY
+
+  # --- With intelligent routing preferences ---
+  # Uncomment these routing_preferences blocks to enable smart routing.
+  # Plano will automatically route requests to the best model based on intent.
+  #
+  # - model: openai/gpt-4o
+  #   access_key: $OPENAI_API_KEY
+  #   default: true
+  #   routing_preferences:
+  #     - name: general conversation
+  #       description: general chat, greetings, casual conversation, Q&A
+  #
+  # - model: anthropic/claude-sonnet-4-5
+  #   access_key: $ANTHROPIC_API_KEY
+  #   routing_preferences:
+  #     - name: code generation
+  #       description: generating code, writing scripts, complex reasoning
+
+# --- Additional Providers ---
+# Uncomment as needed:
+#
+#  - model: gemini/gemini-2.5-flash
+#    access_key: $GOOGLE_API_KEY
+#
+#  - model: groq/llama-3.3-70b-versatile
+#    access_key: $GROQ_API_KEY
+#
+#  - model: mistral/mistral-large-latest
+#    access_key: $MISTRAL_API_KEY
+#
+#  - model: deepseek/deepseek-chat
+#    access_key: $DEEPSEEK_API_KEY
+
+# --- Tracing (optional) ---
+# Enable OpenTelemetry trace sampling (0-100).
+# tracing:
+#   random_sampling: 100
+
+# --- Rate Limiting (optional) ---
+# ratelimits:
+#   - model: openai/gpt-4o
+#     selector:
+#       key: x-user-id
+#       value: "*"
+#     limit:
+#       tokens: 100000
+#       unit: minute
+
+# --- Prompt Guards (optional) ---
+# prompt_guards:
+#   input_guards:
+#     jailbreak:
+#       on_exception:
+#         message: "Request blocked by safety filter"

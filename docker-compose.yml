@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  plano:
+    build:
+      context: .
+      args:
+        PLANO_VERSION: "0.4.8"
+    ports:
+      - "12000:12000"  # LLM Gateway (OpenAI-compatible API)
+      - "10000:10000"  # Agent listener (if configured)
+    environment:
+      - PORT=12000
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - XAI_API_KEY=${XAI_API_KEY:-}
+      - TOGETHER_API_KEY=${TOGETHER_API_KEY:-}
+      - PLANO_DEFAULT_PROVIDER=${PLANO_DEFAULT_PROVIDER:-}
+      - PLANO_TIMEOUT=${PLANO_TIMEOUT:-30s}
+      - PLANO_TRACE_SAMPLING=${PLANO_TRACE_SAMPLING:-0}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:12000/healthz"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
