@@ -2,7 +2,7 @@
 
 Deploy [Plano](https://github.com/katanemo/plano) — an AI-native proxy for LLM routing, guardrails, and observability — on [Railway](https://railway.app) with one click.
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/TEMPLATE_CODE)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.com/template/1jWZbX)
 
 ## What is Plano?
 
