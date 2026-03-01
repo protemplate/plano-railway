@@ -1,0 +1,46 @@
+{
+  "services": {
+    "a17b6257-8f10-4497-8b87-18381cf85754": {
+      "name": "Plano",
+      "source": { "repo": "https://github.com/protemplate/plano-railway", "rootDirectory": null },
+      "variables": {
+        "PORT": { "defaultValue": "12000" },
+        "OPENAI_API_KEY": { "defaultValue": "", "isOptional": true },
+        "ANTHROPIC_API_KEY": { "defaultValue": "", "isOptional": true },
+        "GOOGLE_API_KEY": { "defaultValue": "", "isOptional": true },
+        "GROQ_API_KEY": { "defaultValue": "", "isOptional": true },
+        "MISTRAL_API_KEY": { "defaultValue": "", "isOptional": true },
+        "DEEPSEEK_API_KEY": { "defaultValue": "", "isOptional": true },
+        "XAI_API_KEY": { "defaultValue": "", "isOptional": true },
+        "TOGETHER_API_KEY": { "defaultValue": "", "isOptional": true },
+        "PLANO_DEFAULT_PROVIDER": { "defaultValue": "", "isOptional": true },
+        "PLANO_OPENAI_MODEL": { "defaultValue": "openai/gpt-4o", "isOptional": true },
+        "PLANO_ANTHROPIC_MODEL": { "defaultValue": "anthropic/claude-sonnet-4-5", "isOptional": true },
+        "PLANO_GOOGLE_MODEL": { "defaultValue": "gemini/gemini-2.5-flash", "isOptional": true },
+        "PLANO_GROQ_MODEL": { "defaultValue": "groq/llama-3.3-70b-versatile", "isOptional": true },
+        "PLANO_MISTRAL_MODEL": { "defaultValue": "mistral/mistral-large-latest", "isOptional": true },
+        "PLANO_DEEPSEEK_MODEL": { "defaultValue": "deepseek/deepseek-chat", "isOptional": true },
+        "PLANO_XAI_MODEL": { "defaultValue": "xai/grok-3", "isOptional": true },
+        "PLANO_TOGETHER_MODEL": { "defaultValue": "together_ai/meta-llama/Llama-3.3-70B-Instruct-Turbo", "isOptional": true },
+        "PLANO_TIMEOUT": { "defaultValue": "30s", "isOptional": true },
+        "PLANO_TRACE_SAMPLING": { "defaultValue": "0", "isOptional": true },
+        "LOG_LEVEL": { "defaultValue": "info", "isOptional": true },
+        "PLANO_ROUTING_MODEL": { "defaultValue": "", "isOptional": true },
+        "PLANO_ROUTING_PROVIDER": { "defaultValue": "arch-router", "isOptional": true },
+        "PLANO_CONFIG_YAML": { "defaultValue": "", "isOptional": true },
+        "PLANO_CONFIG_BASE64": { "defaultValue": "", "isOptional": true }
+      },
+      "deploy": {
+        "startCommand": null,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 5,
+        "healthcheckPath": "/healthz",
+        "healthcheckTimeout": 60
+      },
+      "networking": {
+        "serviceDomains": { "<hasDomain>": {} },
+        "tcpProxies": {}
+      }
+    }
+  }
+}
