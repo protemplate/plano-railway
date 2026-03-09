@@ -90,7 +90,7 @@ else
     if [ -n "$GOOGLE_API_KEY" ]; then
         MODEL="${PLANO_GOOGLE_MODEL:-gemini/gemini-2.5-flash}"
         IS_DEFAULT=""
-        if [ "$DEFAULT_PROVIDER" = "google" ] || [ "$DEFAULT_PROVIDER" = "gemini" ]; then
+        if [ "$DEFAULT_PROVIDER" = "google" ] || [ "$DEFAULT_PROVIDER" = "gemini" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
             IS_DEFAULT=$'\n    default: true'
         fi
         ROUTING_PREFS=""
@@ -107,7 +107,7 @@ else
     if [ -n "$GROQ_API_KEY" ]; then
         MODEL="${PLANO_GROQ_MODEL:-groq/llama-3.3-70b-versatile}"
         IS_DEFAULT=""
-        if [ "$DEFAULT_PROVIDER" = "groq" ]; then
+        if [ "$DEFAULT_PROVIDER" = "groq" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
             IS_DEFAULT=$'\n    default: true'
         fi
         ROUTING_PREFS=""
@@ -124,7 +124,7 @@ else
     if [ -n "$MISTRAL_API_KEY" ]; then
         MODEL="${PLANO_MISTRAL_MODEL:-mistral/mistral-large-latest}"
         IS_DEFAULT=""
-        if [ "$DEFAULT_PROVIDER" = "mistral" ]; then
+        if [ "$DEFAULT_PROVIDER" = "mistral" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
             IS_DEFAULT=$'\n    default: true'
         fi
         PROVIDERS="${PROVIDERS}
@@ -137,7 +137,7 @@ else
     if [ -n "$DEEPSEEK_API_KEY" ]; then
         MODEL="${PLANO_DEEPSEEK_MODEL:-deepseek/deepseek-chat}"
         IS_DEFAULT=""
-        if [ "$DEFAULT_PROVIDER" = "deepseek" ]; then
+        if [ "$DEFAULT_PROVIDER" = "deepseek" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
             IS_DEFAULT=$'\n    default: true'
         fi
         PROVIDERS="${PROVIDERS}
@@ -150,7 +150,7 @@ else
     if [ -n "$XAI_API_KEY" ]; then
         MODEL="${PLANO_XAI_MODEL:-xai/grok-3}"
         IS_DEFAULT=""
-        if [ "$DEFAULT_PROVIDER" = "xai" ]; then
+        if [ "$DEFAULT_PROVIDER" = "xai" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
             IS_DEFAULT=$'\n    default: true'
         fi
         PROVIDERS="${PROVIDERS}
@@ -163,7 +163,7 @@ else
     if [ -n "$TOGETHER_API_KEY" ]; then
         MODEL="${PLANO_TOGETHER_MODEL:-together_ai/meta-llama/Llama-3.3-70B-Instruct-Turbo}"
         IS_DEFAULT=""
-        if [ "$DEFAULT_PROVIDER" = "together" ] || [ "$DEFAULT_PROVIDER" = "together_ai" ]; then
+        if [ "$DEFAULT_PROVIDER" = "together" ] || [ "$DEFAULT_PROVIDER" = "together_ai" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
             IS_DEFAULT=$'\n    default: true'
         fi
         PROVIDERS="${PROVIDERS}

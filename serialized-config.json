@@ -25,7 +25,7 @@
         "PLANO_TIMEOUT": { "defaultValue": "30s", "isOptional": true },
         "PLANO_TRACE_SAMPLING": { "defaultValue": "0", "isOptional": true },
         "LOG_LEVEL": { "defaultValue": "info", "isOptional": true },
-        "PLANO_ROUTING_MODEL": { "defaultValue": "", "isOptional": true },
+        "PLANO_ROUTING_MODEL": { "defaultValue": "Arch-Router", "isOptional": true },
         "PLANO_ROUTING_PROVIDER": { "defaultValue": "arch-router", "isOptional": true },
         "PLANO_CONFIG_YAML": { "defaultValue": "", "isOptional": true },
         "PLANO_CONFIG_BASE64": { "defaultValue": "", "isOptional": true }
