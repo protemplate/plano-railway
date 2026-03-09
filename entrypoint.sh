@@ -61,7 +61,7 @@ else
         fi
         ROUTING_PREFS=""
         if [ -n "$PLANO_ROUTING_MODEL" ]; then
-            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: general conversation\n        description: general chat, greetings, Q&A, everyday questions, casual conversation'
+            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: openai general\n        description: general chat, greetings, Q&A, everyday questions, casual conversation'
         fi
         PROVIDERS="${PROVIDERS}
   - model: ${MODEL}
@@ -78,7 +78,7 @@ else
         fi
         ROUTING_PREFS=""
         if [ -n "$PLANO_ROUTING_MODEL" ]; then
-            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: code generation\n        description: generating code, writing scripts, complex reasoning, analysis, debugging'
+            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: anthropic coding\n        description: generating code, writing scripts, complex reasoning, analysis, debugging'
         fi
         PROVIDERS="${PROVIDERS}
   - model: ${MODEL}
@@ -95,7 +95,7 @@ else
         fi
         ROUTING_PREFS=""
         if [ -n "$PLANO_ROUTING_MODEL" ]; then
-            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: general conversation\n        description: general chat, greetings, Q&A, everyday questions, summarization'
+            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: google summarization\n        description: general chat, greetings, Q&A, everyday questions, summarization'
         fi
         PROVIDERS="${PROVIDERS}
   - model: ${MODEL}
@@ -112,7 +112,7 @@ else
         fi
         ROUTING_PREFS=""
         if [ -n "$PLANO_ROUTING_MODEL" ]; then
-            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: quick tasks\n        description: fast responses, simple questions, quick lookups, brief answers'
+            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: groq speed\n        description: fast responses, simple questions, quick lookups, brief answers'
         fi
         PROVIDERS="${PROVIDERS}
   - model: ${MODEL}
