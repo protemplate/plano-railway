@@ -5,7 +5,7 @@
       "source": { "repo": "https://github.com/protemplate/plano-railway", "rootDirectory": null },
       "variables": {
         "PORT": { "defaultValue": "12000" },
-        "OPENAI_API_KEY": { "defaultValue": "", "isOptional": true },
+        "OPENAI_API_KEY": { "defaultValue": "", "isOptional": false },
         "ANTHROPIC_API_KEY": { "defaultValue": "", "isOptional": true },
         "GOOGLE_API_KEY": { "defaultValue": "", "isOptional": true },
         "GROQ_API_KEY": { "defaultValue": "", "isOptional": true },
