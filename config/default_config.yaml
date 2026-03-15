@@ -55,6 +55,15 @@ model_providers:
   #     - name: code generation
   #       description: generating code, writing scripts, complex reasoning
 
+# --- Per-Provider Routing Control ---
+# When using auto-generated config, set PLANO_<PROVIDER>_ROUTING=false to
+# exclude a provider from Arch-Router routing while keeping it available
+# for explicit model= requests. Useful when a provider's OpenAI-compat
+# endpoint doesn't support all request parameters (e.g., Gemini may reject
+# OpenAI-specific fields like tool_choice).
+# Env vars: PLANO_OPENAI_ROUTING, PLANO_ANTHROPIC_ROUTING,
+#           PLANO_GOOGLE_ROUTING, PLANO_GROQ_ROUTING
+
 # --- Additional Providers ---
 # Uncomment as needed:
 #

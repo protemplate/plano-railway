@@ -27,6 +27,10 @@
         "LOG_LEVEL": { "defaultValue": "info", "isOptional": true },
         "PLANO_ROUTING_MODEL": { "defaultValue": "Arch-Router", "isOptional": true },
         "PLANO_ROUTING_PROVIDER": { "defaultValue": "arch-router", "isOptional": true },
+        "PLANO_OPENAI_ROUTING": { "defaultValue": "true", "isOptional": true },
+        "PLANO_ANTHROPIC_ROUTING": { "defaultValue": "true", "isOptional": true },
+        "PLANO_GOOGLE_ROUTING": { "defaultValue": "true", "isOptional": true },
+        "PLANO_GROQ_ROUTING": { "defaultValue": "true", "isOptional": true },
         "PLANO_CONFIG_YAML": { "defaultValue": "", "isOptional": true },
         "PLANO_CONFIG_BASE64": { "defaultValue": "", "isOptional": true }
       },

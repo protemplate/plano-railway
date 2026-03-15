@@ -60,7 +60,7 @@ else
             IS_DEFAULT=$'\n    default: true'
         fi
         ROUTING_PREFS=""
-        if [ -n "$PLANO_ROUTING_MODEL" ]; then
+        if [ -n "$PLANO_ROUTING_MODEL" ] && [ "${PLANO_OPENAI_ROUTING:-true}" = "true" ]; then
             ROUTING_PREFS=$'\n    routing_preferences:\n      - name: openai general\n        description: general chat, greetings, Q&A, everyday questions, casual conversation'
         fi
         PROVIDERS="${PROVIDERS}
@@ -77,7 +77,7 @@ else
             IS_DEFAULT=$'\n    default: true'
         fi
         ROUTING_PREFS=""
-        if [ -n "$PLANO_ROUTING_MODEL" ]; then
+        if [ -n "$PLANO_ROUTING_MODEL" ] && [ "${PLANO_ANTHROPIC_ROUTING:-true}" = "true" ]; then
             ROUTING_PREFS=$'\n    routing_preferences:\n      - name: anthropic coding\n        description: generating code, writing scripts, complex reasoning, analysis, debugging'
         fi
         PROVIDERS="${PROVIDERS}
@@ -94,8 +94,8 @@ else
             IS_DEFAULT=$'\n    default: true'
         fi
         ROUTING_PREFS=""
-        if [ -n "$PLANO_ROUTING_MODEL" ]; then
-            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: google summarization\n        description: general chat, greetings, Q&A, everyday questions, summarization'
+        if [ -n "$PLANO_ROUTING_MODEL" ] && [ "${PLANO_GOOGLE_ROUTING:-true}" = "true" ]; then
+            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: google specialized\n        description: summarization of documents, long-context analysis, multimodal vision tasks, translation between languages'
         fi
         PROVIDERS="${PROVIDERS}
   - model: ${MODEL}
@@ -111,7 +111,7 @@ else
             IS_DEFAULT=$'\n    default: true'
         fi
         ROUTING_PREFS=""
-        if [ -n "$PLANO_ROUTING_MODEL" ]; then
+        if [ -n "$PLANO_ROUTING_MODEL" ] && [ "${PLANO_GROQ_ROUTING:-true}" = "true" ]; then
             ROUTING_PREFS=$'\n    routing_preferences:\n      - name: groq speed\n        description: fast responses, simple questions, quick lookups, brief answers'
         fi
         PROVIDERS="${PROVIDERS}
