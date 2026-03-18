@@ -172,7 +172,7 @@ else
             PROVIDER_COUNT=$((PROVIDER_COUNT + 1))
             local model="${!model_var:-$default_model}"
             echo "  Provider: $display ($model)"
-            [ -z "$PLANO_DEFAULT_PROVIDER" ] && PLANO_DEFAULT_PROVIDER="$name"
+            if [ -z "$PLANO_DEFAULT_PROVIDER" ]; then PLANO_DEFAULT_PROVIDER="$name"; fi
         fi
     }
 
