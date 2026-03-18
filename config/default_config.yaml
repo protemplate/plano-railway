@@ -45,7 +45,7 @@ model_providers:
 # @if PLANO_ROUTING_MODEL && PLANO_OPENAI_ROUTING!=false
     routing_preferences:
       - name: openai general
-        description: general chat, greetings, Q&A, everyday questions, casual conversation
+        description: general chat, greetings, casual conversation, creative writing, storytelling
 # @endif
 # @endif
 # @if ANTHROPIC_API_KEY
@@ -58,7 +58,7 @@ model_providers:
 # @if PLANO_ROUTING_MODEL && PLANO_ANTHROPIC_ROUTING!=false
     routing_preferences:
       - name: anthropic coding
-        description: generating code, writing scripts, complex reasoning, analysis, debugging
+        description: code generation, debugging, complex reasoning, technical writing, step-by-step analysis
 # @endif
 # @endif
 # @if GOOGLE_API_KEY
@@ -70,8 +70,8 @@ model_providers:
 # @enddefault
 # @if PLANO_ROUTING_MODEL && PLANO_GOOGLE_ROUTING!=false
     routing_preferences:
-      - name: google specialized
-        description: summarization of documents, long-context analysis, multimodal vision tasks, translation between languages
+      - name: google knowledge
+        description: translation, summarization, research questions, data analysis, math, science, long documents
 # @endif
 # @endif
 # @if GROQ_API_KEY
@@ -94,6 +94,11 @@ model_providers:
 # @default mistral
     default: true
 # @enddefault
+# @if PLANO_ROUTING_MODEL && PLANO_MISTRAL_ROUTING!=false
+    routing_preferences:
+      - name: mistral multilingual
+        description: European languages, multilingual tasks, structured JSON output, classification, extraction
+# @endif
 # @endif
 # @if DEEPSEEK_API_KEY
 
@@ -102,6 +107,11 @@ model_providers:
 # @default deepseek
     default: true
 # @enddefault
+# @if PLANO_ROUTING_MODEL && PLANO_DEEPSEEK_ROUTING!=false
+    routing_preferences:
+      - name: deepseek reasoning
+        description: Chinese language, mathematical proofs, logic puzzles, algorithmic problems, formal reasoning
+# @endif
 # @endif
 # @if XAI_API_KEY
 
@@ -110,6 +120,11 @@ model_providers:
 # @default xai
     default: true
 # @enddefault
+# @if PLANO_ROUTING_MODEL && PLANO_XAI_ROUTING!=false
+    routing_preferences:
+      - name: xai realtime
+        description: current events, trending topics, social media analysis, news, real-time knowledge
+# @endif
 # @endif
 # @if TOGETHER_API_KEY
 
@@ -118,6 +133,11 @@ model_providers:
 # @default together
     default: true
 # @enddefault
+# @if PLANO_ROUTING_MODEL && PLANO_TOGETHER_ROUTING!=false
+    routing_preferences:
+      - name: together open-source
+        description: open-ended brainstorming, roleplay, creative fiction, uncensored discussion
+# @endif
 # @endif
 
 # @if __TRACE_ENABLED__
