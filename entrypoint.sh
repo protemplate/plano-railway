@@ -3,7 +3,7 @@ set -e
 
 # ==============================================================================
 # Plano Railway Template - Entrypoint Script
-# Generates plano_config.yaml from environment variables and starts supervisord
+# Processes config/default_config.yaml template and starts supervisord
 # ==============================================================================
 
 # Railway provides PORT environment variable
@@ -24,10 +24,120 @@ if [ -n "$RAILWAY_PRIVATE_DOMAIN" ]; then
 fi
 
 # ==============================================================================
+# Template processor
+# ==============================================================================
+
+# Evaluate a condition from # @if directives.
+# Supports: VAR, VAR1 && VAR2, VAR1 && VAR2!=value
+eval_condition() {
+    local cond="$1"
+    if [[ "$cond" == *" && "* ]]; then
+        local left="${cond%% && *}"
+        local right="${cond##* && }"
+        # Left side: must be non-empty
+        if [ -z "${!left}" ]; then return 1; fi
+        # Right side: VAR or VAR!=value
+        if [[ "$right" == *"!="* ]]; then
+            local var="${right%%!=*}"
+            local val="${right##*!=}"
+            local actual="${!var:-true}"
+            [ "$actual" = "$val" ] && return 1
+        else
+            [ -z "${!right}" ] && return 1
+        fi
+        return 0
+    else
+        [ -n "${!cond}" ] && return 0 || return 1
+    fi
+}
+
+# Process a template file: evaluate @if/@endif/@default/@enddefault conditionals,
+# resolve {{VAR:-default}} placeholders, pass $VAR through for Plano.
+process_template() {
+    local input="$1" output="$2"
+    local -a stack=()
+    local result="" prev_blank=false
+
+    while IFS= read -r line || [ -n "$line" ]; do
+        # @if directive
+        if [[ "$line" =~ ^#\ @if\ (.+)$ ]]; then
+            if eval_condition "${BASH_REMATCH[1]}"; then
+                stack+=("1")
+            else
+                stack+=("0")
+            fi
+            continue
+        fi
+
+        # @endif directive
+        if [[ "$line" == "# @endif" ]]; then
+            if [ ${#stack[@]} -eq 0 ]; then
+                echo "ERROR: @endif without matching @if in template" >&2; exit 1
+            fi
+            unset 'stack[${#stack[@]}-1]'
+            continue
+        fi
+
+        # @default directive
+        if [[ "$line" =~ ^#\ @default\ (.+)$ ]]; then
+            if [ "$PLANO_DEFAULT_PROVIDER" = "${BASH_REMATCH[1]}" ]; then
+                stack+=("1")
+            else
+                stack+=("0")
+            fi
+            continue
+        fi
+
+        # @enddefault directive
+        if [[ "$line" == "# @enddefault" ]]; then
+            if [ ${#stack[@]} -eq 0 ]; then
+                echo "ERROR: @enddefault without matching @default in template" >&2; exit 1
+            fi
+            unset 'stack[${#stack[@]}-1]'
+            continue
+        fi
+
+        # Check if current block is active (all stack entries are 1)
+        local active=true
+        for s in "${stack[@]}"; do
+            if [ "$s" = "0" ]; then active=false; break; fi
+        done
+
+        if $active; then
+            # Resolve {{VAR:-default}} placeholders (skip comment lines)
+            while [[ "$line" != \#* ]] && [[ "$line" =~ \{\{([A-Za-z_][A-Za-z_0-9]*):-([^}]*)\}\} ]]; do
+                local var_name="${BASH_REMATCH[1]}"
+                local default_val="${BASH_REMATCH[2]}"
+                local val="${!var_name}"
+                [ -z "$val" ] && val="$default_val"
+                line="${line/\{\{${var_name}:-${default_val}\}\}/$val}"
+            done
+
+            # Collapse consecutive blank lines
+            if [ -z "$line" ]; then
+                if $prev_blank; then continue; fi
+                prev_blank=true
+            else
+                prev_blank=false
+            fi
+
+            result+="$line"$'\n'
+        fi
+    done < "$input"
+
+    # Write output, trim trailing blank lines
+    while [[ "$result" == *$'\n'$'\n' ]]; do
+        result="${result%$'\n'}"
+    done
+    printf '%s\n' "$result" > "$output"
+}
+
+# ==============================================================================
 # Config generation (3 modes)
 # ==============================================================================
 
 CONFIG_PATH="/app/plano_config.yaml"
+TEMPLATE_PATH="/app/default_config.yaml"
 
 if [ -n "$PLANO_CONFIG_YAML" ]; then
     # Mode 1: Full YAML config from environment variable
@@ -42,136 +152,37 @@ elif [ -n "$PLANO_CONFIG_BASE64" ]; then
     echo "$PLANO_CONFIG_BASE64" | base64 -d > "$CONFIG_PATH"
 
 else
-    # Mode 3: Auto-generate from individual env vars
+    # Mode 3: Process template with environment variables
     echo ""
-    echo "Config mode: auto-generate from environment variables"
+    echo "Config mode: template (default_config.yaml)"
 
-    # Determine default provider
-    DEFAULT_PROVIDER="${PLANO_DEFAULT_PROVIDER:-}"
+    # --- Pre-compute derived variables ---
 
-    # Build model_providers section
-    PROVIDERS=""
+    # Resolve default provider
+    PLANO_DEFAULT_PROVIDER="${PLANO_DEFAULT_PROVIDER:-}"
+    [ "$PLANO_DEFAULT_PROVIDER" = "gemini" ] && PLANO_DEFAULT_PROVIDER=google
+    [ "$PLANO_DEFAULT_PROVIDER" = "together_ai" ] && PLANO_DEFAULT_PROVIDER=together
+
+    # Count providers and auto-detect default
     PROVIDER_COUNT=0
+    check_provider() {
+        local display="$1" name="$2" key_var="$3" model_var="$4" default_model="$5"
+        if [ -n "${!key_var}" ]; then
+            PROVIDER_COUNT=$((PROVIDER_COUNT + 1))
+            local model="${!model_var:-$default_model}"
+            echo "  Provider: $display ($model)"
+            [ -z "$PLANO_DEFAULT_PROVIDER" ] && PLANO_DEFAULT_PROVIDER="$name"
+        fi
+    }
 
-    if [ -n "$OPENAI_API_KEY" ]; then
-        MODEL="${PLANO_OPENAI_MODEL:-openai/gpt-4o}"
-        IS_DEFAULT=""
-        if [ "$DEFAULT_PROVIDER" = "openai" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
-            IS_DEFAULT=$'\n    default: true'
-        fi
-        ROUTING_PREFS=""
-        if [ -n "$PLANO_ROUTING_MODEL" ] && [ "${PLANO_OPENAI_ROUTING:-true}" = "true" ]; then
-            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: openai general\n        description: general chat, greetings, Q&A, everyday questions, casual conversation'
-        fi
-        PROVIDERS="${PROVIDERS}
-  - model: ${MODEL}
-    access_key: \$OPENAI_API_KEY${IS_DEFAULT}${ROUTING_PREFS}"
-        PROVIDER_COUNT=$((PROVIDER_COUNT + 1))
-        echo "  Provider: OpenAI ($MODEL)"
-    fi
-
-    if [ -n "$ANTHROPIC_API_KEY" ]; then
-        MODEL="${PLANO_ANTHROPIC_MODEL:-anthropic/claude-sonnet-4-5}"
-        IS_DEFAULT=""
-        if [ "$DEFAULT_PROVIDER" = "anthropic" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
-            IS_DEFAULT=$'\n    default: true'
-        fi
-        ROUTING_PREFS=""
-        if [ -n "$PLANO_ROUTING_MODEL" ] && [ "${PLANO_ANTHROPIC_ROUTING:-true}" = "true" ]; then
-            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: anthropic coding\n        description: generating code, writing scripts, complex reasoning, analysis, debugging'
-        fi
-        PROVIDERS="${PROVIDERS}
-  - model: ${MODEL}
-    access_key: \$ANTHROPIC_API_KEY${IS_DEFAULT}${ROUTING_PREFS}"
-        PROVIDER_COUNT=$((PROVIDER_COUNT + 1))
-        echo "  Provider: Anthropic ($MODEL)"
-    fi
-
-    if [ -n "$GOOGLE_API_KEY" ]; then
-        MODEL="${PLANO_GOOGLE_MODEL:-gemini/gemini-2.5-flash}"
-        IS_DEFAULT=""
-        if [ "$DEFAULT_PROVIDER" = "google" ] || [ "$DEFAULT_PROVIDER" = "gemini" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
-            IS_DEFAULT=$'\n    default: true'
-        fi
-        ROUTING_PREFS=""
-        if [ -n "$PLANO_ROUTING_MODEL" ] && [ "${PLANO_GOOGLE_ROUTING:-true}" = "true" ]; then
-            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: google specialized\n        description: summarization of documents, long-context analysis, multimodal vision tasks, translation between languages'
-        fi
-        PROVIDERS="${PROVIDERS}
-  - model: ${MODEL}
-    access_key: \$GOOGLE_API_KEY${IS_DEFAULT}${ROUTING_PREFS}"
-        PROVIDER_COUNT=$((PROVIDER_COUNT + 1))
-        echo "  Provider: Google ($MODEL)"
-    fi
-
-    if [ -n "$GROQ_API_KEY" ]; then
-        MODEL="${PLANO_GROQ_MODEL:-groq/llama-3.3-70b-versatile}"
-        IS_DEFAULT=""
-        if [ "$DEFAULT_PROVIDER" = "groq" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
-            IS_DEFAULT=$'\n    default: true'
-        fi
-        ROUTING_PREFS=""
-        if [ -n "$PLANO_ROUTING_MODEL" ] && [ "${PLANO_GROQ_ROUTING:-true}" = "true" ]; then
-            ROUTING_PREFS=$'\n    routing_preferences:\n      - name: groq speed\n        description: fast responses, simple questions, quick lookups, brief answers'
-        fi
-        PROVIDERS="${PROVIDERS}
-  - model: ${MODEL}
-    access_key: \$GROQ_API_KEY${IS_DEFAULT}${ROUTING_PREFS}"
-        PROVIDER_COUNT=$((PROVIDER_COUNT + 1))
-        echo "  Provider: Groq ($MODEL)"
-    fi
-
-    if [ -n "$MISTRAL_API_KEY" ]; then
-        MODEL="${PLANO_MISTRAL_MODEL:-mistral/mistral-large-latest}"
-        IS_DEFAULT=""
-        if [ "$DEFAULT_PROVIDER" = "mistral" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
-            IS_DEFAULT=$'\n    default: true'
-        fi
-        PROVIDERS="${PROVIDERS}
-  - model: ${MODEL}
-    access_key: \$MISTRAL_API_KEY${IS_DEFAULT}"
-        PROVIDER_COUNT=$((PROVIDER_COUNT + 1))
-        echo "  Provider: Mistral ($MODEL)"
-    fi
-
-    if [ -n "$DEEPSEEK_API_KEY" ]; then
-        MODEL="${PLANO_DEEPSEEK_MODEL:-deepseek/deepseek-chat}"
-        IS_DEFAULT=""
-        if [ "$DEFAULT_PROVIDER" = "deepseek" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
-            IS_DEFAULT=$'\n    default: true'
-        fi
-        PROVIDERS="${PROVIDERS}
-  - model: ${MODEL}
-    access_key: \$DEEPSEEK_API_KEY${IS_DEFAULT}"
-        PROVIDER_COUNT=$((PROVIDER_COUNT + 1))
-        echo "  Provider: DeepSeek ($MODEL)"
-    fi
-
-    if [ -n "$XAI_API_KEY" ]; then
-        MODEL="${PLANO_XAI_MODEL:-xai/grok-3}"
-        IS_DEFAULT=""
-        if [ "$DEFAULT_PROVIDER" = "xai" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
-            IS_DEFAULT=$'\n    default: true'
-        fi
-        PROVIDERS="${PROVIDERS}
-  - model: ${MODEL}
-    access_key: \$XAI_API_KEY${IS_DEFAULT}"
-        PROVIDER_COUNT=$((PROVIDER_COUNT + 1))
-        echo "  Provider: xAI ($MODEL)"
-    fi
-
-    if [ -n "$TOGETHER_API_KEY" ]; then
-        MODEL="${PLANO_TOGETHER_MODEL:-together_ai/meta-llama/Llama-3.3-70B-Instruct-Turbo}"
-        IS_DEFAULT=""
-        if [ "$DEFAULT_PROVIDER" = "together" ] || [ "$DEFAULT_PROVIDER" = "together_ai" ] || { [ -z "$DEFAULT_PROVIDER" ] && [ $PROVIDER_COUNT -eq 0 ]; }; then
-            IS_DEFAULT=$'\n    default: true'
-        fi
-        PROVIDERS="${PROVIDERS}
-  - model: ${MODEL}
-    access_key: \$TOGETHER_API_KEY${IS_DEFAULT}"
-        PROVIDER_COUNT=$((PROVIDER_COUNT + 1))
-        echo "  Provider: Together AI ($MODEL)"
-    fi
+    check_provider "OpenAI" openai OPENAI_API_KEY PLANO_OPENAI_MODEL "openai/gpt-4o"
+    check_provider "Anthropic" anthropic ANTHROPIC_API_KEY PLANO_ANTHROPIC_MODEL "anthropic/claude-sonnet-4-5"
+    check_provider "Google" google GOOGLE_API_KEY PLANO_GOOGLE_MODEL "gemini/gemini-2.5-flash"
+    check_provider "Groq" groq GROQ_API_KEY PLANO_GROQ_MODEL "groq/llama-3.3-70b-versatile"
+    check_provider "Mistral" mistral MISTRAL_API_KEY PLANO_MISTRAL_MODEL "mistral/mistral-large-latest"
+    check_provider "DeepSeek" deepseek DEEPSEEK_API_KEY PLANO_DEEPSEEK_MODEL "deepseek/deepseek-chat"
+    check_provider "xAI" xai XAI_API_KEY PLANO_XAI_MODEL "xai/grok-3"
+    check_provider "Together AI" together TOGETHER_API_KEY PLANO_TOGETHER_MODEL "together_ai/meta-llama/Llama-3.3-70B-Instruct-Turbo"
 
     if [ $PROVIDER_COUNT -eq 0 ]; then
         echo ""
@@ -184,40 +195,16 @@ else
     fi
 
     echo ""
-    echo "  Total providers: $PROVIDER_COUNT"
+    echo "  Total providers: $PROVIDER_COUNT, default: $PLANO_DEFAULT_PROVIDER"
 
-    # Build routing section (only if multiple providers with routing enabled)
-    ROUTING_SECTION=""
-    if [ -n "$PLANO_ROUTING_MODEL" ]; then
-        ROUTING_SECTION="
-routing:
-  model: ${PLANO_ROUTING_MODEL}
-  llm_provider: ${PLANO_ROUTING_PROVIDER:-arch-router}"
-    fi
-
-    # Build tracing section
-    TRACING_SECTION=""
+    # Trace sampling
     TRACE_SAMPLING="${PLANO_TRACE_SAMPLING:-0}"
     if [ "$TRACE_SAMPLING" -gt 0 ] 2>/dev/null; then
-        TRACING_SECTION="
-tracing:
-  random_sampling: ${TRACE_SAMPLING}"
+        export __TRACE_ENABLED__=true
     fi
 
-    # Generate the config
-    cat > "$CONFIG_PATH" <<YAML
-version: v0.1.0
-${ROUTING_SECTION}
-listeners:
-  egress_traffic:
-    address: 0.0.0.0
-    port: ${PLANO_PORT}
-    message_format: openai
-    timeout: ${PLANO_TIMEOUT:-30s}
-
-model_providers:${PROVIDERS}
-${TRACING_SECTION}
-YAML
+    # Process the template
+    process_template "$TEMPLATE_PATH" "$CONFIG_PATH"
 
 fi
 

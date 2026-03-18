@@ -1,6 +1,6 @@
 # Plano Railway Template
 # Thin wrapper around the official Plano image with Railway PORT handling
-ARG PLANO_VERSION=0.4.11
+ARG PLANO_VERSION=0.4.12
 FROM katanemo/plano:${PLANO_VERSION}
 
 # curl is already in the base image (used for health checks)
@@ -9,7 +9,7 @@ FROM katanemo/plano:${PLANO_VERSION}
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Copy reference config (not used at runtime — entrypoint generates config from env vars)
+# Copy config template (processed by entrypoint at startup)
 COPY config/default_config.yaml /app/default_config.yaml
 
 # LLM Gateway port (Railway overrides via $PORT)

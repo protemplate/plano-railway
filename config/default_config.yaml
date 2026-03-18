@@ -1,90 +1,133 @@
-# Plano Configuration Reference
-# ==============================
-# This file is NOT used at runtime. The entrypoint auto-generates config
-# from environment variables. Use this as a reference for custom configs
-# passed via PLANO_CONFIG_YAML or PLANO_CONFIG_BASE64.
+# Plano Configuration Template
+# =============================
+# This file is processed by entrypoint.sh at startup. To customize, fork the
+# repo and edit this file directly — no bash editing needed.
+#
+# Template syntax:
+#   # @if VAR              Include block only when env var VAR is non-empty
+#   # @if VAR1 && VAR2     Include when both are non-empty
+#   # @if V1 && V2!=false  Include when V1 is set and V2 is not "false"
+#   # @endif               End conditional block (nestable)
+#   # @default provider    Include block only when this is the default provider
+#   # @enddefault          End default block
+#   {{VAR:-fallback}}      Resolved at startup to env var value or fallback
+#   $VAR                   Resolved by Plano at runtime (use for API keys)
 #
 # Full schema: https://github.com/katanemo/plano/blob/main/config/plano_config_schema.yaml
 # Docs: https://docs.planoai.dev
 
 version: v0.1.0
 
-# --- Intelligent Routing (optional) ---
-# Uncomment to enable automatic model selection based on prompt intent.
-# Requires the Arch-Router model (hosted free by Plano).
-#
-# routing:
-#   model: Arch-Router
-#   llm_provider: arch-router
+# --- Intelligent Routing ---
+# @if PLANO_ROUTING_MODEL
+routing:
+  model: {{PLANO_ROUTING_MODEL:-Arch-Router}}
+  llm_provider: {{PLANO_ROUTING_PROVIDER:-arch-router}}
+# @endif
 
-# --- LLM Gateway Listener ---
-# Exposes an OpenAI-compatible API on the configured port.
-# On Railway, this is set to $PORT automatically.
 listeners:
   egress_traffic:
     address: 0.0.0.0
-    port: 12000
+    port: {{PORT:-12000}}
     message_format: openai
-    timeout: 30s
+    timeout: {{PLANO_TIMEOUT:-30s}}
 
 # --- Model Providers ---
-# Add your LLM providers here. Format: <provider>/<model_id>
-# The $VAR syntax references environment variables (substituted at startup).
+# Each provider is included only when its API key env var is set.
+# The first provider with a key becomes the default (override with PLANO_DEFAULT_PROVIDER).
 model_providers:
-  - model: openai/gpt-4o
+# @if OPENAI_API_KEY
+  - model: {{PLANO_OPENAI_MODEL:-openai/gpt-4o}}
     access_key: $OPENAI_API_KEY
+# @default openai
     default: true
+# @enddefault
+# @if PLANO_ROUTING_MODEL && PLANO_OPENAI_ROUTING!=false
+    routing_preferences:
+      - name: openai general
+        description: general chat, greetings, Q&A, everyday questions, casual conversation
+# @endif
+# @endif
+# @if ANTHROPIC_API_KEY
 
-  - model: anthropic/claude-sonnet-4-5
+  - model: {{PLANO_ANTHROPIC_MODEL:-anthropic/claude-sonnet-4-5}}
     access_key: $ANTHROPIC_API_KEY
+# @default anthropic
+    default: true
+# @enddefault
+# @if PLANO_ROUTING_MODEL && PLANO_ANTHROPIC_ROUTING!=false
+    routing_preferences:
+      - name: anthropic coding
+        description: generating code, writing scripts, complex reasoning, analysis, debugging
+# @endif
+# @endif
+# @if GOOGLE_API_KEY
 
-  # --- With intelligent routing preferences ---
-  # Uncomment these routing_preferences blocks to enable smart routing.
-  # Plano will automatically route requests to the best model based on intent.
-  #
-  # - model: openai/gpt-4o
-  #   access_key: $OPENAI_API_KEY
-  #   default: true
-  #   routing_preferences:
-  #     - name: general conversation
-  #       description: general chat, greetings, casual conversation, Q&A
-  #
-  # - model: anthropic/claude-sonnet-4-5
-  #   access_key: $ANTHROPIC_API_KEY
-  #   routing_preferences:
-  #     - name: code generation
-  #       description: generating code, writing scripts, complex reasoning
+  - model: {{PLANO_GOOGLE_MODEL:-gemini/gemini-2.5-flash}}
+    access_key: $GOOGLE_API_KEY
+# @default google
+    default: true
+# @enddefault
+# @if PLANO_ROUTING_MODEL && PLANO_GOOGLE_ROUTING!=false
+    routing_preferences:
+      - name: google specialized
+        description: summarization of documents, long-context analysis, multimodal vision tasks, translation between languages
+# @endif
+# @endif
+# @if GROQ_API_KEY
 
-# --- Per-Provider Routing Control ---
-# When using auto-generated config, set PLANO_<PROVIDER>_ROUTING=false to
-# exclude a provider from Arch-Router routing while keeping it available
-# for explicit model= requests. Useful when a provider's OpenAI-compat
-# endpoint doesn't support all request parameters (e.g., Gemini may reject
-# OpenAI-specific fields like tool_choice).
-# Env vars: PLANO_OPENAI_ROUTING, PLANO_ANTHROPIC_ROUTING,
-#           PLANO_GOOGLE_ROUTING, PLANO_GROQ_ROUTING
+  - model: {{PLANO_GROQ_MODEL:-groq/llama-3.3-70b-versatile}}
+    access_key: $GROQ_API_KEY
+# @default groq
+    default: true
+# @enddefault
+# @if PLANO_ROUTING_MODEL && PLANO_GROQ_ROUTING!=false
+    routing_preferences:
+      - name: groq speed
+        description: fast responses, simple questions, quick lookups, brief answers
+# @endif
+# @endif
+# @if MISTRAL_API_KEY
 
-# --- Additional Providers ---
-# Uncomment as needed:
-#
-#  - model: gemini/gemini-2.5-flash
-#    access_key: $GOOGLE_API_KEY
-#
-#  - model: groq/llama-3.3-70b-versatile
-#    access_key: $GROQ_API_KEY
-#
-#  - model: mistral/mistral-large-latest
-#    access_key: $MISTRAL_API_KEY
-#
-#  - model: deepseek/deepseek-chat
-#    access_key: $DEEPSEEK_API_KEY
+  - model: {{PLANO_MISTRAL_MODEL:-mistral/mistral-large-latest}}
+    access_key: $MISTRAL_API_KEY
+# @default mistral
+    default: true
+# @enddefault
+# @endif
+# @if DEEPSEEK_API_KEY
 
-# --- Tracing (optional) ---
-# Enable OpenTelemetry trace sampling (0-100).
-# tracing:
-#   random_sampling: 100
+  - model: {{PLANO_DEEPSEEK_MODEL:-deepseek/deepseek-chat}}
+    access_key: $DEEPSEEK_API_KEY
+# @default deepseek
+    default: true
+# @enddefault
+# @endif
+# @if XAI_API_KEY
+
+  - model: {{PLANO_XAI_MODEL:-xai/grok-3}}
+    access_key: $XAI_API_KEY
+# @default xai
+    default: true
+# @enddefault
+# @endif
+# @if TOGETHER_API_KEY
+
+  - model: {{PLANO_TOGETHER_MODEL:-together_ai/meta-llama/Llama-3.3-70B-Instruct-Turbo}}
+    access_key: $TOGETHER_API_KEY
+# @default together
+    default: true
+# @enddefault
+# @endif
+
+# @if __TRACE_ENABLED__
+# --- Tracing ---
+tracing:
+  random_sampling: {{PLANO_TRACE_SAMPLING:-0}}
+# @endif
 
 # --- Rate Limiting (optional) ---
+# Uncomment to enable. These lines pass through as-is (no conditional markers needed).
 # ratelimits:
 #   - model: openai/gpt-4o
 #     selector:
