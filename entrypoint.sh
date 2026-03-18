@@ -137,7 +137,7 @@ process_template() {
 # Config generation (3 modes)
 # ==============================================================================
 
-CONFIG_PATH="/app/plano_config.yaml"
+CONFIG_PATH="/app/plano_config_rendered.yaml"
 TEMPLATE_PATH="/app/default_config.yaml"
 
 if [ -n "$PLANO_CONFIG_YAML" ]; then
