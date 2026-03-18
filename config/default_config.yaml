@@ -44,8 +44,10 @@ model_providers:
 # @enddefault
 # @if PLANO_ROUTING_MODEL && PLANO_OPENAI_ROUTING!=false
     routing_preferences:
-      - name: openai general
-        description: general chat, greetings, casual conversation, creative writing, storytelling
+      - name: casual chat
+        description: casual conversation, greetings, jokes, and small talk
+      - name: creative writing
+        description: creative writing, storytelling, and content generation
 # @endif
 # @endif
 # @if ANTHROPIC_API_KEY
@@ -57,8 +59,10 @@ model_providers:
 # @enddefault
 # @if PLANO_ROUTING_MODEL && PLANO_ANTHROPIC_ROUTING!=false
     routing_preferences:
-      - name: anthropic coding
-        description: code generation, debugging, complex reasoning, technical writing, step-by-step analysis
+      - name: code generation
+        description: generating code, writing scripts, debugging, and technical documentation
+      - name: complex reasoning
+        description: deep analysis, step-by-step problem solving, and logical reasoning
 # @endif
 # @endif
 # @if GOOGLE_API_KEY
@@ -70,8 +74,12 @@ model_providers:
 # @enddefault
 # @if PLANO_ROUTING_MODEL && PLANO_GOOGLE_ROUTING!=false
     routing_preferences:
-      - name: google knowledge
-        description: translation, summarization, research questions, data analysis, math, science, long documents
+      - name: translation
+        description: translating text between languages and multilingual content
+      - name: research and summarization
+        description: summarizing documents, answering research questions, and data analysis
+      - name: math and science
+        description: solving math problems, scientific calculations, and explaining mathematical concepts
 # @endif
 # @endif
 # @if GROQ_API_KEY
@@ -83,8 +91,8 @@ model_providers:
 # @enddefault
 # @if PLANO_ROUTING_MODEL && PLANO_GROQ_ROUTING!=false
     routing_preferences:
-      - name: groq speed
-        description: fast responses, simple questions, quick lookups, brief answers
+      - name: quick answers
+        description: simple factual lookups, quick answers, and short responses
 # @endif
 # @endif
 # @if MISTRAL_API_KEY
@@ -96,8 +104,8 @@ model_providers:
 # @enddefault
 # @if PLANO_ROUTING_MODEL && PLANO_MISTRAL_ROUTING!=false
     routing_preferences:
-      - name: mistral multilingual
-        description: European languages, multilingual tasks, structured JSON output, classification, extraction
+      - name: multilingual tasks
+        description: European language processing, structured JSON output, and text classification
 # @endif
 # @endif
 # @if DEEPSEEK_API_KEY
@@ -109,8 +117,8 @@ model_providers:
 # @enddefault
 # @if PLANO_ROUTING_MODEL && PLANO_DEEPSEEK_ROUTING!=false
     routing_preferences:
-      - name: deepseek reasoning
-        description: Chinese language, mathematical proofs, logic puzzles, algorithmic problems, formal reasoning
+      - name: formal reasoning
+        description: mathematical proofs, logic puzzles, and algorithmic problem solving
 # @endif
 # @endif
 # @if XAI_API_KEY
@@ -122,8 +130,8 @@ model_providers:
 # @enddefault
 # @if PLANO_ROUTING_MODEL && PLANO_XAI_ROUTING!=false
     routing_preferences:
-      - name: xai realtime
-        description: current events, trending topics, social media analysis, news, real-time knowledge
+      - name: current events
+        description: current events, trending topics, news, and real-time knowledge
 # @endif
 # @endif
 # @if TOGETHER_API_KEY
@@ -135,8 +143,8 @@ model_providers:
 # @enddefault
 # @if PLANO_ROUTING_MODEL && PLANO_TOGETHER_ROUTING!=false
     routing_preferences:
-      - name: together open-source
-        description: open-ended brainstorming, roleplay, creative fiction, uncensored discussion
+      - name: open discussion
+        description: open-ended brainstorming, roleplay, and creative fiction
 # @endif
 # @endif
 
