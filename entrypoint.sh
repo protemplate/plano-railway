@@ -110,7 +110,8 @@ process_template() {
                 local default_val="${BASH_REMATCH[2]}"
                 local val="${!var_name}"
                 [ -z "$val" ] && val="$default_val"
-                line="${line/\{\{${var_name}:-${default_val}\}\}/$val}"
+                local match="${BASH_REMATCH[0]}"
+                line="${line%%"$match"*}${val}${line#*"$match"}"
             done
 
             # Collapse consecutive blank lines
