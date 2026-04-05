@@ -1,6 +1,6 @@
 # Plano Railway Template
 # Thin wrapper around the official Plano image with Railway PORT handling
-ARG PLANO_VERSION=0.4.12
+ARG PLANO_VERSION=0.4.17
 FROM katanemo/plano:${PLANO_VERSION}
 
 # curl is already in the base image (used for health checks)
